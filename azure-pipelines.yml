@@ -1,0 +1,41 @@
+trigger:
+  branches:
+    include:
+      - dev
+      - preprod
+      - prod
+
+pool:
+  name: aks-agent-pool
+
+stages:
+- stage: Plan
+  jobs:
+  - job: TerraformPlan
+    steps:
+    - checkout: self
+
+    - task: TerraformInstaller@1
+      inputs:
+        terraformVersion: '1.5.7'
+
+    - task: TerraformTaskV4@4
+      displayName: "Terraform Init"
+      inputs:
+        provider: 'azurerm'
+        command: 'init'
+        workingDirectory: 'infra'
+        backendServiceArm: 'azure-service-connection'
+        backendAzureRmResourceGroupName: 'rg-backend'
+        backendAzureRmStorageAccountName: 'tfstate123'
+        backendAzureRmContainerName: 'tfstate'
+        backendAzureRmKey: '$(Build.SourceBranchName).tfstate'
+
+    - task: TerraformTaskV4@4
+      displayName: "Terraform Plan"
+      inputs:
+        provider: 'azurerm'
+        command: 'plan'
+        workingDirectory: 'infra'
+        environmentServiceNameAzureRM: 'azure-service-connection'
+        commandOptions: '-var-file=$(Build.SourceBranchName).tfvars'
