@@ -24,6 +24,12 @@ stages:
     - task: TerraformInstaller@1
       inputs:
         terraformVersion: $(terraformVersion)
+        - script: |
+    echo "Current directory:"
+    pwd
+    echo "Listing files:"
+    ls -R
+  displayName: "Debug Directory"
 
     - task: TerraformTaskV4@4
       displayName: "Terraform Init"
@@ -32,7 +38,7 @@ stages:
         command: 'init'
         workingDirectory: 'infra'
         backendServiceArm: 'azure-service-connection'
-        backendAzureRmResourceGroupName: 'rg-backend'
+        backendAzureRmResourceGroupName: 'rgp-tddev-de-ci-dat-01'
         backendAzureRmStorageAccountName: 'tfstate123'
         backendAzureRmContainerName: 'tfstate'
         backendAzureRmKey: '$(Build.SourceBranchName).tfstate'
