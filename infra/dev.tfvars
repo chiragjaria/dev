@@ -1,5 +1,5 @@
 
-resource_group = "rg-mes-dev"
+resource_group = "rgp-dev-mes"
 location       = "Central India"
 
 aks_name = "aks-mes-dev"
