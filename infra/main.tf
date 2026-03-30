@@ -14,7 +14,7 @@ resource "azurerm_key_vault" "kv" {
   name                        = var.kv_name
   location                    = azurerm_resource_group.rg.location
   resource_group_name         = azurerm_resource_group.rg.name
-  tenant_id                   = "YOUR-TENANT-ID"
+  tenant_id                   = "f9619075-6411-4bf8-8c43-c9b10b59452b"
   sku_name                    = "standard"
 }
 
