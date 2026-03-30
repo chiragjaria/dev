@@ -1,6 +1,6 @@
 
-resource_group = "rgp-dev-mes-1"
-location       = "Central India"
+resource_group_name = data.azurerm_resource_group.rg.name
+location            = data.azurerm_resource_group.rg.location
 
 aks_name = "aks-mes-dev"
 kv_name  = "kvmesdev123"
