@@ -8,16 +8,22 @@ trigger:
 pool:
   name: aks-agent-pool
 
+variables:
+  terraformVersion: '1.5.7'
+
 stages:
+
+# ---------------- PLAN ----------------
 - stage: Plan
   jobs:
   - job: TerraformPlan
     steps:
+
     - checkout: self
 
     - task: TerraformInstaller@1
       inputs:
-        terraformVersion: '1.5.7'
+        terraformVersion: $(terraformVersion)
 
     - task: TerraformTaskV4@4
       displayName: "Terraform Init"
@@ -39,3 +45,26 @@ stages:
         workingDirectory: 'infra'
         environmentServiceNameAzureRM: 'azure-service-connection'
         commandOptions: '-var-file=$(Build.SourceBranchName).tfvars'
+
+# ---------------- APPLY ----------------
+- stage: Apply
+  dependsOn: Plan
+  condition: succeeded()
+  jobs:
+  - job: TerraformApply
+    steps:
+
+    - checkout: self
+
+    - task: TerraformInstaller@1
+      inputs:
+        terraformVersion: $(terraformVersion)
+
+    - task: TerraformTaskV4@4
+      displayName: "Terraform Apply"
+      inputs:
+        provider: 'azurerm'
+        command: 'apply'
+        workingDirectory: 'infra'
+        environmentServiceNameAzureRM: 'azure-service-connection'
+        commandOptions: '-var-file=$(Build.SourceBranchName).tfvars -auto-approve'
