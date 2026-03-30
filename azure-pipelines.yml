@@ -13,6 +13,12 @@ variables:
 
 stages:
 
+- script: |
+    echo "Current directory:"
+    pwd
+    echo "Listing files:"
+    ls -R
+  displayName: "Debug Directory"
 # ---------------- PLAN ----------------
 - stage: Plan
   jobs:
