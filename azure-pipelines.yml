@@ -13,12 +13,6 @@ variables:
 
 stages:
 
-- script: |
-    echo "Current directory:"
-    pwd
-    echo "Listing files:"
-    ls -R
-  displayName: "Debug Directory"
 # ---------------- PLAN ----------------
 - stage: Plan
   jobs:
@@ -30,6 +24,12 @@ stages:
     - task: TerraformInstaller@1
       inputs:
         terraformVersion: $(terraformVersion)
+
+    # DEBUG (IMPORTANT)
+    - script: |
+        echo "Listing repo files:"
+        ls -R
+      displayName: "Debug Files"
 
     - task: TerraformTaskV4@4
       displayName: "Terraform Init"
@@ -52,6 +52,7 @@ stages:
         environmentServiceNameAzureRM: 'azure-service-connection'
         commandOptions: '-var-file=$(Build.SourceBranchName).tfvars'
 
+
 # ---------------- APPLY ----------------
 - stage: Apply
   dependsOn: Plan
@@ -65,6 +66,19 @@ stages:
     - task: TerraformInstaller@1
       inputs:
         terraformVersion: $(terraformVersion)
+
+    # 🔥 MISSING STEP (CRITICAL FIX)
+    - task: TerraformTaskV4@4
+      displayName: "Terraform Init (Apply)"
+      inputs:
+        provider: 'azurerm'
+        command: 'init'
+        workingDirectory: 'infra'
+        backendServiceArm: 'azure-service-connection'
+        backendAzureRmResourceGroupName: 'rgp-tddev-de-ci-dat-01'
+        backendAzureRmStorageAccountName: 'tfstate123'
+        backendAzureRmContainerName: 'tfstate'
+        backendAzureRmKey: '$(Build.SourceBranchName).tfstate'
 
     - task: TerraformTaskV4@4
       displayName: "Terraform Apply"
