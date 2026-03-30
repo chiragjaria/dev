@@ -24,12 +24,6 @@ stages:
     - task: TerraformInstaller@1
       inputs:
         terraformVersion: $(terraformVersion)
-        - script: |
-    echo "Current directory:"
-    pwd
-    echo "Listing files:"
-    ls -R
-  displayName: "Debug Directory"
 
     - task: TerraformTaskV4@4
       displayName: "Terraform Init"
