@@ -15,22 +15,27 @@ stages:
 
 # ---------------- PLAN ----------------
 - stage: Plan
+  displayName: "Terraform Plan"
   jobs:
   - job: TerraformPlan
     steps:
 
     - checkout: self
 
+    # Install Terraform
     - task: TerraformInstaller@1
       inputs:
         terraformVersion: $(terraformVersion)
 
-    # DEBUG (IMPORTANT)
+    # Debug (helps verify correct folder/files)
     - script: |
-        echo "Listing repo files:"
+        echo "Current directory:"
+        pwd
+        echo "Listing files:"
         ls -R
-      displayName: "Debug Files"
+      displayName: "Debug Repo Structure"
 
+    # Terraform Init (CLEAN INIT)
     - task: TerraformTaskV4@4
       displayName: "Terraform Init"
       inputs:
@@ -43,6 +48,7 @@ stages:
         backendAzureRmContainerName: 'tfstate'
         backendAzureRmKey: '$(Build.SourceBranchName).tfstate'
 
+    # Terraform Plan
     - task: TerraformTaskV4@4
       displayName: "Terraform Plan"
       inputs:
@@ -55,6 +61,7 @@ stages:
 
 # ---------------- APPLY ----------------
 - stage: Apply
+  displayName: "Terraform Apply"
   dependsOn: Plan
   condition: succeeded()
   jobs:
@@ -63,11 +70,12 @@ stages:
 
     - checkout: self
 
+    # Install Terraform
     - task: TerraformInstaller@1
       inputs:
         terraformVersion: $(terraformVersion)
 
-    # 🔥 MISSING STEP (CRITICAL FIX)
+    # 🔥 CRITICAL: Init AGAIN (new agent)
     - task: TerraformTaskV4@4
       displayName: "Terraform Init (Apply)"
       inputs:
@@ -80,6 +88,7 @@ stages:
         backendAzureRmContainerName: 'tfstate'
         backendAzureRmKey: '$(Build.SourceBranchName).tfstate'
 
+    # Terraform Apply
     - task: TerraformTaskV4@4
       displayName: "Terraform Apply"
       inputs:
