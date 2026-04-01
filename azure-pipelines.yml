@@ -1,15 +1,8 @@
-trigger:
-  branches:
-    include:
-      - dev
-      - preprod
-      - prod
+# ❌ Disable auto run on code push
+trigger: none
 
-pr:
-  branches:
-    include:
-      - preprod
-      - prod
+# ❌ Disable PR auto trigger (we'll control via policy or manual)
+pr: none
 
 pool:
   name: aks-agent-pool
@@ -17,7 +10,7 @@ pool:
 variables:
   terraformVersion: '1.5.7'
 
-  # 👇 branch name clean (for PR + normal runs)
+  # 🔥 FIX: Correct branch name for PR + normal runs
   branchName: $[
     replace(
       coalesce(variables['System.PullRequest.TargetBranch'], variables['Build.SourceBranch']),
@@ -68,7 +61,7 @@ stages:
   displayName: "Terraform Apply"
   dependsOn: Plan
 
-  # 🔥 IMPORTANT: Apply should NOT run on PR
+  # 🔥 IMPORTANT: No Apply during PR
   condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
 
   jobs:
