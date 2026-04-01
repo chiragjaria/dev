@@ -8,7 +8,3 @@ db_name  = "pgmesdev123"
 
 admin_username = "pgadmin"
 admin_password = "Test@12345"
-
-create_aks = false
-create_db  = false
-create_akv= true
