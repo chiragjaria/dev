@@ -1,7 +1,5 @@
-# ❌ Disable auto run on code pus
+# ❌ Disable ALL automatic triggers
 trigger: none
-
-# ❌ Disable PR auto trigger (we'll control via policy or manual)
 pr: none
 
 pool:
@@ -9,15 +7,6 @@ pool:
 
 variables:
   terraformVersion: '1.5.7'
-
-  # 🔥 FIX: Correct branch name for PR + normal runs
-  branchName: $[
-    replace(
-      coalesce(variables['System.PullRequest.TargetBranch'], variables['Build.SourceBranch']),
-      'refs/heads/',
-      ''
-    )
-  ]
 
 stages:
 
@@ -44,7 +33,7 @@ stages:
         backendAzureRmResourceGroupName: 'rgp-tddev-de-ci-dat-01'
         backendAzureRmStorageAccountName: 'tfstate123'
         backendAzureRmContainerName: 'tfstate'
-        backendAzureRmKey: '$(branchName).tfstate'
+        backendAzureRmKey: '$(Build.SourceBranchName).tfstate'
 
     - task: TerraformTaskV4@4
       displayName: "Terraform Plan"
@@ -53,7 +42,7 @@ stages:
         command: 'plan'
         workingDirectory: 'infra'
         environmentServiceNameAzureRM: 'azure-service-connection'
-        commandOptions: '-var-file=$(branchName).tfvars'
+        commandOptions: '-var-file=$(Build.SourceBranchName).tfvars'
 
 
 # ---------------- APPLY ----------------
@@ -61,7 +50,7 @@ stages:
   displayName: "Terraform Apply"
   dependsOn: Plan
 
-  # 🔥 IMPORTANT: No Apply during PR
+  # ❌ Never run Apply during PR (extra safety)
   condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
 
   jobs:
@@ -74,6 +63,7 @@ stages:
       inputs:
         terraformVersion: $(terraformVersion)
 
+    # 🔥 IMPORTANT: Init again (new agent)
     - task: TerraformTaskV4@4
       displayName: "Terraform Init (Apply)"
       inputs:
@@ -84,7 +74,7 @@ stages:
         backendAzureRmResourceGroupName: 'rgp-tddev-de-ci-dat-01'
         backendAzureRmStorageAccountName: 'tfstate123'
         backendAzureRmContainerName: 'tfstate'
-        backendAzureRmKey: '$(branchName).tfstate'
+        backendAzureRmKey: '$(Build.SourceBranchName).tfstate'
 
     - task: TerraformTaskV4@4
       displayName: "Terraform Apply"
@@ -93,4 +83,4 @@ stages:
         command: 'apply'
         workingDirectory: 'infra'
         environmentServiceNameAzureRM: 'azure-service-connection'
-        commandOptions: '-var-file=$(branchName).tfvars -auto-approve'
+        commandOptions: '-var-file=$(Build.SourceBranchName).tfvars -auto-approve'
