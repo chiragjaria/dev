@@ -4,6 +4,7 @@ trigger:
       - dev
       - preprod
       - prod
+    pr: none
 
 pool:
   name: aks-agent-pool
