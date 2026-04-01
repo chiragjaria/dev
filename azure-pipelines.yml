@@ -1,4 +1,4 @@
-# ❌ Disable auto run on code push
+# ❌ Disable auto run on code pus
 trigger: none
 
 # ❌ Disable PR auto trigger (we'll control via policy or manual)
