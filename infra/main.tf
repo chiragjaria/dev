@@ -24,7 +24,6 @@ data "azurerm_resource_group" "rg" {
   resource_group_name         = data.azurerm_resource_group.rg.name
   tenant_id                   = "f9619075-6411-4bf8-8c43-c9b10b59452b"
   sku_name                    = "standard"
-}
 
 # AKS
 
@@ -42,7 +41,6 @@ data "azurerm_resource_group" "rg" {
   identity {
     type = "SystemAssigned"
   }
-}
 
 # PostgreSQL Flexible Server
   name                = var.db_name
@@ -56,4 +54,3 @@ data "azurerm_resource_group" "rg" {
   storage_mb = 32768
   version    = "14"
   public_network_access_enabled = false
-}
