@@ -1,3 +1,7 @@
+# ❌ Disable ALL automatic triggers
+trigger: none
+pr: none
+
 pool:
   name: aks-agent-pool
 
@@ -15,20 +19,10 @@ stages:
 
     - checkout: self
 
-    # Install Terraform
     - task: TerraformInstaller@1
       inputs:
         terraformVersion: $(terraformVersion)
 
-    # Debug (helps verify correct folder/files)
-    - script: |
-        echo "Current directory:"
-        pwd
-        echo "Listing files:"
-        ls -R
-      displayName: "Debug Repo Structure"
-
-    # Terraform Init (CLEAN INIT)
     - task: TerraformTaskV4@4
       displayName: "Terraform Init"
       inputs:
@@ -41,7 +35,6 @@ stages:
         backendAzureRmContainerName: 'tfstate'
         backendAzureRmKey: '$(Build.SourceBranchName).tfstate'
 
-    # Terraform Plan
     - task: TerraformTaskV4@4
       displayName: "Terraform Plan"
       inputs:
@@ -56,19 +49,21 @@ stages:
 - stage: Apply
   displayName: "Terraform Apply"
   dependsOn: Plan
-  condition: succeeded()
+
+  # ❌ Never run Apply during PR (extra safety)
+  condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
+
   jobs:
   - job: TerraformApply
     steps:
 
     - checkout: self
 
-    # Install Terraform
     - task: TerraformInstaller@1
       inputs:
         terraformVersion: $(terraformVersion)
 
-    # 🔥 CRITICAL: Init AGAIN (new agent)
+    # 🔥 IMPORTANT: Init again (new agent)
     - task: TerraformTaskV4@4
       displayName: "Terraform Init (Apply)"
       inputs:
@@ -81,7 +76,6 @@ stages:
         backendAzureRmContainerName: 'tfstate'
         backendAzureRmKey: '$(Build.SourceBranchName).tfstate'
 
-    # Terraform Apply
     - task: TerraformTaskV4@4
       displayName: "Terraform Apply"
       inputs:

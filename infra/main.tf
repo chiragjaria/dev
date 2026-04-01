@@ -2,7 +2,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "~> 3.0"
+      version = ">= 3.0.0"
     }
   }
 }
@@ -12,22 +12,31 @@ provider "azurerm" {
   skip_provider_registration = true
 }
 
-# Resource Group
+# ---------------- EXISTING RG ----------------
 data "azurerm_resource_group" "rg" {
-  name     = var.resource_group
+  name = var.resource_group
 }
 
-# Key Vault
+# ---------------- KEY VAULT ----------------
 resource "azurerm_key_vault" "kv" {
-  name                        = var.kv_name
-  location                    = data.azurerm_resource_group.rg.location
-  resource_group_name         = data.azurerm_resource_group.rg.name
-  tenant_id                   = "f9619075-6411-4bf8-8c43-c9b10b59452b"
-  sku_name                    = "standard"
+  name                = var.kv_name
+  location            = data.azurerm_resource_group.rg.location
+  resource_group_name = data.azurerm_resource_group.rg.name
+  tenant_id           = var.tenant_id
+  sku_name            = "standard"
+
+  soft_delete_retention_days = 7
+  purge_protection_enabled   = false
+
+  tags = {
+    env = var.env
+  }
 }
 
-# AKS
+# ---------------- AKS ----------------
 resource "azurerm_kubernetes_cluster" "aks" {
+  count = var.create_aks ? 1 : 0
+
   name                = var.aks_name
   location            = data.azurerm_resource_group.rg.location
   resource_group_name = data.azurerm_resource_group.rg.name
@@ -42,10 +51,16 @@ resource "azurerm_kubernetes_cluster" "aks" {
   identity {
     type = "SystemAssigned"
   }
+
+  tags = {
+    env = var.env
+  }
 }
 
-# PostgreSQL Flexible Server
+# ---------------- POSTGRES ----------------
 resource "azurerm_postgresql_flexible_server" "db" {
+  count = var.create_db ? 1 : 0
+
   name                = var.db_name
   resource_group_name = data.azurerm_resource_group.rg.name
   location            = data.azurerm_resource_group.rg.location
@@ -56,5 +71,10 @@ resource "azurerm_postgresql_flexible_server" "db" {
   sku_name   = "GP_Standard_D2s_v3"
   storage_mb = 32768
   version    = "14"
-  public_network_access_enabled = false
+
+  public_network_access_enabled = true
+
+  tags = {
+    env = var.env
+  }
 }
