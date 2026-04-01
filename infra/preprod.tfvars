@@ -8,3 +8,8 @@ db_name  = "pgmespre123"
 
 admin_username = "pgadmin"
 admin_password = "Test@12345"
+
+create_aks = true
+create_db  = true
+create_akv= true
+
