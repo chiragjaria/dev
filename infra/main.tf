@@ -13,13 +13,13 @@ provider "azurerm" {
 }
 
 # Resource Group
-resource "azurerm_resource_group" "rg" {
+data "azurerm_resource_group" "rg" {
   name     = var.resource_group
   location = var.location
 }
 
 # Key Vault
-resource "azurerm_key_vault" "kv" {
+data "azurerm_key_vault" "kv" {
   name                        = var.kv_name
   location                    = azurerm_resource_group.rg.location
   resource_group_name         = azurerm_resource_group.rg.name
@@ -28,7 +28,7 @@ resource "azurerm_key_vault" "kv" {
 }
 
 # AKS
-resource "azurerm_kubernetes_cluster" "aks" {
+data "azurerm_kubernetes_cluster" "aks" {
   name                = var.aks_name
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
@@ -46,7 +46,7 @@ resource "azurerm_kubernetes_cluster" "aks" {
 }
 
 # PostgreSQL Flexible Server
-resource "azurerm_postgresql_flexible_server" "db" {
+data "azurerm_postgresql_flexible_server" "db" {
   name                = var.db_name
   resource_group_name = azurerm_resource_group.rg.name
   location            = azurerm_resource_group.rg.location
