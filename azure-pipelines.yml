@@ -8,16 +8,27 @@ stages:
 
 # ---------------- PLAN ----------------
 - stage: Plan
+  displayName: "Terraform Plan"
   jobs:
   - job: TerraformPlan
     steps:
 
     - checkout: self
 
+    # Install Terraform
     - task: TerraformInstaller@1
       inputs:
         terraformVersion: $(terraformVersion)
 
+    # Debug (helps verify correct folder/files)
+    - script: |
+        echo "Current directory:"
+        pwd
+        echo "Listing files:"
+        ls -R
+      displayName: "Debug Repo Structure"
+
+    # Terraform Init (CLEAN INIT)
     - task: TerraformTaskV4@4
       displayName: "Terraform Init"
       inputs:
@@ -25,11 +36,12 @@ stages:
         command: 'init'
         workingDirectory: 'infra'
         backendServiceArm: 'azure-service-connection'
-        backendAzureRmResourceGroupName: 'rg-backend'
+        backendAzureRmResourceGroupName: 'rgp-tddev-de-ci-dat-01'
         backendAzureRmStorageAccountName: 'tfstate123'
         backendAzureRmContainerName: 'tfstate'
         backendAzureRmKey: '$(Build.SourceBranchName).tfstate'
 
+    # Terraform Plan
     - task: TerraformTaskV4@4
       displayName: "Terraform Plan"
       inputs:
@@ -39,8 +51,10 @@ stages:
         environmentServiceNameAzureRM: 'azure-service-connection'
         commandOptions: '-var-file=$(Build.SourceBranchName).tfvars'
 
+
 # ---------------- APPLY ----------------
 - stage: Apply
+  displayName: "Terraform Apply"
   dependsOn: Plan
   condition: succeeded()
   jobs:
@@ -49,10 +63,25 @@ stages:
 
     - checkout: self
 
+    # Install Terraform
     - task: TerraformInstaller@1
       inputs:
         terraformVersion: $(terraformVersion)
 
+    # 🔥 CRITICAL: Init AGAIN (new agent)
+    - task: TerraformTaskV4@4
+      displayName: "Terraform Init (Apply)"
+      inputs:
+        provider: 'azurerm'
+        command: 'init'
+        workingDirectory: 'infra'
+        backendServiceArm: 'azure-service-connection'
+        backendAzureRmResourceGroupName: 'rgp-tddev-de-ci-dat-01'
+        backendAzureRmStorageAccountName: 'tfstate123'
+        backendAzureRmContainerName: 'tfstate'
+        backendAzureRmKey: '$(Build.SourceBranchName).tfstate'
+
+    # Terraform Apply
     - task: TerraformTaskV4@4
       displayName: "Terraform Apply"
       inputs:
